@@ -2,12 +2,13 @@
 """
 Created on Wed Oct 31 10:07:05 2018
 
-@author: Andrew.Dai
+@author: Anzhuo Dai
 """
 
 from Assignment_2 import solvex
 import pylab as pl
 import time
+import scipy as sp
 
 start_time = time.time()
 
@@ -50,7 +51,7 @@ def cubic_spline(x, f, n):
     b = [(x[i+1] - x[i-1]) / 3 for i in range(1, N-1)]
     c = [(x[i+1] - x[i]) / 6 for i in range(1, N-2)]
     
-    #now set up big boi M
+    #now set up big boi tridiagonal matrix M
     M = pl.zeros((N-2, N-2))
     for i in range(len(a)):
         M[i+1][i] = a[i]
@@ -92,8 +93,12 @@ cs = cubic_spline(x, f, 100)
 
 pl.figure("Assignment_3")
 pl.plot(x,f,"o", label = "original points")
+pl.plot(linear_interp(x,f,10)[0], linear_interp(x,f,10)[1], linewidth = 2, label = "linear interpolation")
+
+test = sp.interpolate.interp1d(x,f, kind = 'cubic')
+pl.plot(cs[0], test(cs[0]), label = "scipy.interpolate cubic") #test against scipy's cubic spline
+    
 pl.plot(cs[0], cs[1], label = "cubic spline")
-#pl.plot(linear_interp(x,f,10)[0], linear_interp(x,f,10)[1], label = "linear interpolation")
 pl.xlabel("x")
 pl.ylabel("f")
 pl.legend()

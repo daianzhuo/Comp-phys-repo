@@ -2,17 +2,15 @@
 """
 Created on Sun Nov  4 12:30:18 2018
 
-@author: Andrew.Dai
+@author: Anzhuo Dai
 """
 
-import numpy as np
 import random
 import pylab as pl
 import time
 
 random.seed = 20310312
 N = 1e5
-#binsize = 0.1
 mini = 0.0
 maxi = 1.0
 bins = 20
@@ -26,20 +24,22 @@ def uniform(N, mini, maxi, bins):
         counter += 1
     
     print("Time for uniform dist: %s" %(time.time() - start_time))
-    uniform.time = time.time() - start_time
     return l, N/bins
 
 def sine_pdf(x):    
+    """
+    used to plot the pdf later
+    """
     return 0.5*pl.sin(x)
 
 def transformation(N, mini, maxi, bins):
     start_time = time.time()
     
     a = uniform(N, mini, maxi, bins)[0]
-    f = lambda x: pl.arccos(1 - 2 * x)
+    f = lambda x: pl.arccos(1 - 2 * x) #implements calculated cdf
     l = [f(i) for i in a]
     
-    print("Time for transformation method: %s" %(time.time() - start_time))
+    print("Time for transformation method with %s points: %s" %(N, time.time() - start_time))
     transformation.time = time.time() - start_time
     return l
 
@@ -74,50 +74,51 @@ def rejection(mode, N, mini, maxi):
     
     pdf = lambda x: (2/pl.pi) * (pl.sin(x)**2)
     accepted = []
-    acc_no = 0
+    acc_no = 0         #number of points accepted
     for x in generator:
         y = random.uniform(0, 1)
-        if y < pdf(x):
+        if y < pdf(x): #condition for acceptance
             accepted.append(x)
             acc_no += 1
-            #print("{0:.0%}".format(acc_no/N) + " complete")
         if acc_no == N:
             break
         
-    print("Time for rejection method with %s points: %s" %(N, (time.time() - start_time)))
-    rejection.time = time.time() - start_time
-    return accepted
-    
-#a = uniform(N, mini, maxi, bins)
-#
-#pl.figure()
-#pl.hist(a[0], bins = 20, edgecolor='black', linewidth=1.0)
-#pl.hlines(a[1], mini, maxi, color = "black", linewidth = 3.0)
-#
-#pl.figure()
-#pl.hist(transformation(N, mini, maxi, bins), bins, edgecolor='black', linewidth=1.0)
-#x = pl.linspace(0,1,1000)
-#pl.plot(x, sine_pdf(x*pl.pi))
-    
+    #print("Time for " + mode + " rejection method with %s points: %s" %(N, (time.time() - start_time)))
+    return accepted, time.time()-start_time
+  
+def time_test(trials):
+    """
+    finds time ratio for 1000 points and 1000 cycles to get an average
+    """
+    ratio = []
+    for i in range(int(trials)):
+        st = rejection("sine", 1000, 0, pl.pi)[1]
+        ut = rejection("uniform", 1000, 0, pl.pi)[1]
+        ratio.append(st/ut)
+    return pl.average(ratio)
 
-uniform(10000, 0, pl.pi, 20)
-transformation(10000, 0, pl.pi, 20)
-rejection("uniform", 10000, 0, pl.pi)
+print(time_test(1000)) #<------comment out to run faster
 
+a = uniform(N, mini, maxi, bins)
 
-def timetest(mini, maxi):
-    st = time.time()
-        
-    print(st - time.time())
-def timetest1(mini, maxi):
-    st = time.time()
-    for i in sine_single(mini, maxi):
-        print(st - time.time())
-        break        
+pl.figure()
+pl.hist(a[0], bins = 100, edgecolor='black', linewidth = 1.0)
+#pl.hlines(a[1], mini, maxi, color = "black", linewidth = 3.0, label = "uniform distribution")
+pl.legend()
+
+pl.figure()
+pl.hist(transformation(N, mini, maxi, bins), bins, edgecolor='black', linewidth=1.0)
+#x = pl.linspace(0,pl.pi,1000)
+#pl.plot(x, sine_pdf(x)*10500, color = "black", linewidth = 3.0, label = r'$\frac{1}{2} \sin(x)$')
+pl.legend()
+
+b = rejection("sine", 100000, 0, pl.pi)[0]
+pl.figure()
+#pl.hist(b, bins = 30, edgecolor='black', linewidth=1.0)
 
 
 """
-plotting for rejection method
+plotting for rejection method, code has same functionality as the above function, just more messy and use to plot stuff
 """
 def rejection_edited(mode, N, mini, maxi):
     """
@@ -156,22 +157,17 @@ def rejection_edited(mode, N, mini, maxi):
         if acc_no == N:
             break
     #print("Time for rejection method: %s" %(time.time() - start_time))
-    pl.plot(xx, yy, 'x') #plots initially generated grid
-    #pl.plot(accepted, ay, 'o', markersize = 1, label = "accepted points") #plots accepted grid
-    pl.plot(pl.linspace(0, pl.pi, 100), top_pdf(pl.linspace(0, pl.pi, 100)), 'black', linewidth = 2, label = r'$\frac{2}{\pi} \sin(x)^2$')
-    pl.legend()
-    pl.grid()
-    
-    pl.figure()
-    pl.plot()
-    
-    rejection.acc_no = acc_no
-    rejection.rej_no = rej_no
-    
-    return accepted
+    a = accepted
+    return a, xx, yy
 
-#a = rejection_edited("sine", 10000, 0, pl.pi)
-#pl.plot(pl.linspace(0, pl.pi, 100), sine_sqr_pdf(pl.linspace(0, pl.pi, 100)), 'black', linewidth = 2, label = "(2/pl.pi)*pl.sin(x)**2")
-#pl.hist(a, bins = 20, edgecolor='black', linewidth=1.0)
+pl.figure()
+a, xx, yy = rejection_edited("uniform", 6000, mini, pl.pi)
+pl.plot(xx, yy, "x", label = "sine comparison function")
+pl.plot(pl.linspace(0, pl.pi, 100), sine_sqr_pdf(pl.linspace(0, pl.pi, 100)), 'black', linewidth = 2, label = r"$\frac{2}{\pi} \sin^2(x)$")
+pl.legend(loc = 1)
 
-#print(rejection("uniform", 10000, 0, pl.pi))
+pl.figure()
+a, xx, yy = rejection_edited("sine", 6000, mini, pl.pi)
+pl.plot(xx, yy, "x", label = "sine comparison function")
+pl.plot(pl.linspace(0, pl.pi, 100), sine_sqr_pdf(pl.linspace(0, pl.pi, 100)), 'black', linewidth = 2, label = r"$\frac{2}{\pi} \sin^2(x)$")
+pl.legend(loc = 1)

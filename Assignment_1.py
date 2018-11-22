@@ -2,7 +2,7 @@
 """
 Created on Wed Oct 24 10:17:42 2018
 
-@author: Andrew.Dai
+@author: Anzhuo Dai
 """
 
 import time

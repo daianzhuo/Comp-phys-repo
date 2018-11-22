@@ -2,12 +2,8 @@
 """
 Created on Fri Oct 26 21:27:01 2018
 
-@author: Andrew.Dai
+@author: Anzhuo Dai
 """
-
-import sys
-sys.path.insert(0, "C:\\Users\\Andrew.Dai\\Documents\\My files\\Yr3 Computational physics\\Problem sheets\\")
-from PS3_matrix import Matrix
 
 import pylab as pl
 import numpy as np
@@ -17,9 +13,10 @@ b = np.matrix([[2], [5], [-4], [8], [9]])
 
 def crouts(A):
     ni = len(A)
+    #set up L and U matrices for values to be appended
     L = pl.zeros((ni, ni))
-    U = pl.zeros((ni, ni))
-    pl.fill_diagonal(L, 1)
+    U = pl.zeros((ni, ni)) 
+    pl.fill_diagonal(L, 1) #fills L's diagonal entries with 1's
     
     for j in range(ni):
         for i in range(j+1):
@@ -37,9 +34,16 @@ def crouts(A):
     return L, U
 
 def determinant(U):
+    """
+    multiplies U's diagonal entries to get its determinant
+    """
     return pl.product([U[i][i] for i in range(len(U))])
 
 def solvex(A,b):
+    """
+    uses forward and backward substituions to solve the matrix equation Ax=b
+    returns x in the form of a column vector
+    """
     L, U = crouts(A)
     ni = len(L)
     y = pl.zeros((ni, 1))
@@ -59,9 +63,13 @@ def solvex(A,b):
         for j in range(i+1, ni):
             sigma2 += U[i][j] * x[j][0]
         x[i][0] = (y[i][0] - sigma2) / U[i][i]
+        
     return x
 
 def inverse(A):
+    """
+    calculates the inverse of an input matrix A
+    """
     ni = len(A)
     I = pl.zeros((ni, ni))
     pl.fill_diagonal(I, 1)
@@ -72,6 +80,7 @@ def inverse(A):
         b = np.matrix([[entry] for entry in i])
         inv_dummy.append(solvex(A,b))
 
+    #the following lines is to reshape the inverse to the desired shape
     a = []
     for i in inv_dummy:
         a.append(i.reshape((1,len(i)))[0].tolist())
@@ -85,10 +94,12 @@ def inverse(A):
 
 
 L, U = crouts(asgmt)
+print(L)
+print(U)
+print(pl.matmul(L,U)) #verifies L and U are able to reproduce original matrix
 print(determinant(U))
-#x = solvex(asgmt,b)
-
-#print(x)
-#print(pl.matmul(asgmt, x))
-#print(pl.matmul(inverse(asgmt), asgmt))
+x = solvex(asgmt,b)
+print(x)
+print(pl.matmul(asgmt, x)) #verifies solution x is correct
+print(pl.matmul(inverse(asgmt), asgmt)) #verifies inverse of A is correct
 print(inverse(asgmt))
